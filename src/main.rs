@@ -5,6 +5,7 @@ use std::io::{self, Read, Write, BufRead, BufReader};
 use std::env;
 use std::path::PathBuf;
 use std::process::Command;
+//use execute::Execute;
 
 #[derive(Debug, Parser, Default)]
 struct Cli {
@@ -75,7 +76,27 @@ impl Cli {
 
     fn run_command(self) {
         let cmd = self.get_full_cmd();
-        println!("Command is {}", cmd);
+        let mut args = cmd.split(' ');
+        println!("cmd is {}", &cmd);
+        let mut prog = "";
+        let mut prog_args = Vec::new();
+        for (i, arg) in args.enumerate() {
+            if i == 0 {
+                prog = arg;
+            } else {
+                prog_args.push(arg);
+            }
+        }
+        println!("Prog args are {:?}", prog_args);
+        //let output = Command::new(args.nth(0).unwrap()).output().expect("Command failed to execute");
+        //io::stdout().write_all(&output.stdout).unwrap();
+        //io::stderr().write_all(&output.stderr).unwrap();
+        //let output = Command::new(args.nth(0).unwrap()).status().expect("Failed to execute command.");
+        let output = Command::new(prog)
+            .args(prog_args)
+            .status()
+            .expect("Failed to execute command.");
+        //println!("{}", output);
     }
 
     fn get_full_cmd(self) -> String {
@@ -91,7 +112,6 @@ impl Cli {
                 if cmdline.starts_with(&start_str) {
                     return cmdline.split(',').nth(1).unwrap().to_string();
                 }
-                println!("cmd line is {}", cmdline);
             }
         }
 
