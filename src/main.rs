@@ -1,6 +1,7 @@
 use clap::Parser;
 use std::fs::{self, File};
-use std::io::{Read, Write};
+use std::path::Path;
+use std::io::{self, Read, Write, BufRead, BufReader};
 use std::env;
 use std::path::PathBuf;
 use std::process::Command;
@@ -74,31 +75,27 @@ impl Cli {
 
     fn run_command(self) {
         let cmd = self.get_full_cmd();
+        println!("Command is {}", cmd);
     }
 
-    fn get_full_cmd(self) {
-        // TODO: abstract
+    fn get_full_cmd(self) -> String {
         let mut config_dir = PathBuf::new();
         config_dir.push(env::home_dir().unwrap());
         config_dir.push(".config");
         config_dir.push("eaconfig");
-        let file = File::open(&config_dir);
-        let mut file_exists = true;
-        match file {
-            Err(_) => file_exists = false,
-            _ => (),
+        let file = File::open(config_dir).unwrap();
+        let lines = BufReader::new(file).lines();
+        let start_str = self.cmd + ",";
+        for line in lines {
+            if let Ok(cmdline) = line {
+                if cmdline.starts_with(&start_str) {
+                    return cmdline.split(',').nth(1).unwrap().to_string();
+                }
+                println!("cmd line is {}", cmdline);
+            }
         }
-        let mut config = String::new();
-        if file_exists {
-            if let Ok(_) = file.unwrap().read_to_string(&mut config){
-                ();
-            } else {
-                println!("Failed to read config file!");
-            };
-        } else {
-            println!("Config file does not exist. Please add a command alias first.");
-        }
-        
+
+        return "".to_string()
     }
 }
 
