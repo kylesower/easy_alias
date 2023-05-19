@@ -25,11 +25,11 @@ impl Cli {
                 loop {
                     let mut input = String::new();
                     io::stdin().read_line(&mut input).expect("Invalid input.");
-                    if input == "y\n" {
+                    if input.to_lowercase() == "y\n" {
                         self.remove_alias();
                         self.add_alias();
                         return
-                    } else if input == "n\n" {
+                    } else if input.to_lowercase() == "n\n" {
                         return
                     } else {
                         println!("Please input a valid option (y/n).");
