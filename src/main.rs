@@ -46,8 +46,7 @@ impl Cli {
     
     fn read_config(&self) -> Result<(String, PathBuf), std::io::Error> {
         let mut config_dir = PathBuf::new();
-        // This line may error on Windows. This program is not designed for 
-        // Windows, which isn't even a real operating system.
+        // This line may error on Windows. This is a feature, not a bug.
         config_dir.push(env::home_dir().unwrap());
         config_dir.push(".config");
         config_dir.push("eaconfig");
@@ -150,8 +149,6 @@ impl Cli {
         return "".to_string()
     }
 }
-
-
 
 fn main() {
     let args = Cli::parse();
