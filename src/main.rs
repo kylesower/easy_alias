@@ -1,11 +1,9 @@
 use clap::Parser;
 use std::fs::{self, File};
-use std::path::Path;
-use std::io::{self, Read, Write, BufRead, BufReader};
+use std::io::{self, Read};
 use std::env;
 use std::path::PathBuf;
 use std::process::Command;
-//use execute::Execute;
 
 #[derive(Debug, Parser, Default)]
 struct Cli {
@@ -46,16 +44,6 @@ impl Cli {
         }
     }
     
-    fn read_file(&self) -> Result<File, std::io::Error> {
-        let mut config_dir = PathBuf::new();
-        // This line may error on Windows. This program is not designed for 
-        // Windows, which isn't even a real operating system.
-        config_dir.push(env::home_dir().unwrap());
-        config_dir.push(".config");
-        config_dir.push("eaconfig");
-        File::open(&config_dir)
-    }
-
     fn read_config(&self) -> Result<(String, PathBuf), std::io::Error> {
         let mut config_dir = PathBuf::new();
         // This line may error on Windows. This program is not designed for 
@@ -159,7 +147,6 @@ impl Cli {
                 return line.split(',').nth(1).unwrap().to_string();
             }
         }
-
         return "".to_string()
     }
 }
