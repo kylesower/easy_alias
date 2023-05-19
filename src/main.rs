@@ -116,27 +116,18 @@ impl Cli {
 
     fn run_command(self) {
         let cmd = self.get_full_cmd();
-        let args = cmd.split(' ');
-        println!("cmd is {}", &cmd);
-        let mut prog = "";
-        let mut prog_args = Vec::new();
-        for (i, arg) in args.enumerate() {
-            if i == 0 {
-                prog = arg;
-            } else {
-                prog_args.push(arg);
-            }
-        }
-        println!("Prog args are {:?}", prog_args);
-        let output = Command::new(prog)
-            .args(prog_args)
+        let mut cmd_quote = "\"".to_string();
+        cmd_quote.push_str(&cmd);
+        cmd_quote.push('"');
+        let output = Command::new("sh")
+            .arg("-c")
+            .arg(cmd)
             .status()
             .expect("Failed to execute command.");
-        if !output.success(){
-            println!("{}", output);
+        if !output.success() {
+            println!("Error! {}", output);
         }
     }
-
     fn get_full_cmd(&self) -> String {
         let (config, _) = self.read_config().unwrap();
         let mut start_str = self.cmd.clone();
