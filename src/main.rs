@@ -1,4 +1,5 @@
 use clap::Parser;
+
 use std::fs::{self, File};
 use std::io::{self, Read};
 use std::env;
@@ -6,20 +7,37 @@ use std::path::PathBuf;
 use std::process::Command;
 
 #[derive(Debug, Parser, Default)]
+#[command(author, version, about, long_about = None)]
 struct Cli {
-    cmd: String,
+    /// Alias you want to use with easy_alias.
     alias: Option<String>,
-    #[clap(short, default_value_t = false)]
-    remove: bool
+
+    /// Bash script assigned to alias, enclosed in quotes if it contains spaces.
+    cmd: Option<String>,
+
+    /// Remove provided alias if flag is present
+    #[arg(short, default_value_t = false)]
+    remove: bool,
+
+    /// List aliases
+    #[arg(short, default_value_t = false)]
+    list: bool,
 }
 
 impl Cli {
     fn process(self) {
         if self.remove {
-            self.remove_alias();
+            match self.alias {
+                Some(_) => self.remove_alias(),
+                _ => println!("Error! Please provide an alias to remove."),
+            } 
             return;
         }
-        if let Some(_) = &self.alias {
+        if self.list {
+            self.list_aliases();
+            return;
+        }
+        if let Some(_) = &self.cmd {
             if self.alias_exists() {
                 println!("Alias already in config. Would you like to overwrite it (y/n)?");
                 loop {
@@ -39,11 +57,19 @@ impl Cli {
                 self.add_alias();
             }
             return;
-        } else {
+        } else if let Some(_) = self.alias {
             self.run_command()
+        } else {
+            println!("Invalid input. Try using the --help flag.");
         }
     }
-    
+
+    fn list_aliases(&self) {
+        let (config, dir) = self.read_config().unwrap();
+        println!("Aliases stored at {}:", &dir.to_str().unwrap());
+        println!("{}", &config);
+    }
+
     fn read_config(&self) -> Result<(String, PathBuf), std::io::Error> {
         let mut config_dir = PathBuf::new();
         // This line may error on Windows. This is a feature, not a bug.
@@ -75,8 +101,8 @@ impl Cli {
         if config == "" {
             return false;
         }
-        let mut start_str = self.cmd.clone();
-        start_str.push(',');
+        let mut start_str = self.alias.clone().unwrap();
+        start_str.push_str("::");
         for line in config.split('\n') {
             if line.starts_with(&start_str) {
                 return true
@@ -88,9 +114,9 @@ impl Cli {
 
     fn add_alias(&self) {
         let (mut config, dir) = self.read_config().unwrap();
-        config.push_str(&self.cmd);
-        config.push(',');
         config.push_str(&self.alias.clone().unwrap());
+        config.push_str("::");
+        config.push_str(&self.cmd.clone().unwrap());
         config.push('\n');
         if let Ok(_) = fs::write(&dir, config) {
             println!("Command added to config at {}", &dir.to_str().unwrap());
@@ -101,20 +127,20 @@ impl Cli {
     
     fn remove_alias(&self) {
         let (config, dir) = self.read_config().unwrap();
-        let mut start_str = self.cmd.clone();
-        start_str.push(',');
+        let mut start_str = self.alias.clone().unwrap();
+        start_str.push_str("::");
         let mut new_config = config.split('\n')
             .filter(|x| !x.starts_with(&start_str))
             .fold(String::new(), |a, b| a + b + "\n");
         new_config.pop();
         if let Ok(_) = fs::write(&dir, new_config) {
-            println!("Command '{}' removed from config.", &self.cmd);
+            println!("Alias '{}' removed from config.", &self.alias.clone().unwrap());
         } else {
             println!("Failed to write to file!");
         }
     }
 
-    fn run_command(self) {
+    fn run_command(&self) {
         let cmd = self.get_full_cmd();
         let mut cmd_quote = "\"".to_string();
         cmd_quote.push_str(&cmd);
@@ -128,13 +154,14 @@ impl Cli {
             println!("Error! {}", output);
         }
     }
+
     fn get_full_cmd(&self) -> String {
         let (config, _) = self.read_config().unwrap();
-        let mut start_str = self.cmd.clone();
-        start_str.push(',');
+        let mut start_str = self.alias.clone().unwrap();
+        start_str.push_str("::");
         for line in config.split('\n') {
             if line.starts_with(&start_str) {
-                return line.split(',').nth(1).unwrap().to_string();
+                return line.split("::").nth(1).unwrap().to_string();
             }
         }
         return "".to_string()
