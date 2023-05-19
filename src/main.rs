@@ -66,7 +66,7 @@ impl Cli {
 
     fn list_aliases(&self) {
         let (config, dir) = self.read_config().unwrap();
-        println!("Aliases stored at {}:", &dir.to_str().unwrap());
+        println!("Aliases stored at {}:\n", &dir.to_str().unwrap());
         println!("{}", &config);
     }
 
@@ -164,6 +164,8 @@ impl Cli {
                 return line.split("::").nth(1).unwrap().to_string();
             }
         }
+        println!("\nError! Alias not found.");
+        self.list_aliases();
         return "".to_string()
     }
 }
