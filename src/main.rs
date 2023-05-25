@@ -11,10 +11,12 @@ struct Cli {
     /// Alias you want to use with easy_alias.
     alias: Option<String>,
 
-    /// Bash script assigned to alias, enclosed 
-    /// in quotes if it contains spaces. To add
-    /// substitutions, use '**x' syntax in the 
-    /// command, where x can be any single letter.
+    /// Bash script assigned to alias, enclosed in quotes if it 
+    /// contains spaces. To add substitutions, use '**x' syntax 
+    /// in the command, where x can be any single letter.
+    /// Use \ as an escape character for quotes and other special 
+    /// characters. Things like $HOME will otherwise be expanded 
+    /// in the stored command.
     #[arg(verbatim_doc_comment)]
     cmd: Option<String>,
 
@@ -26,10 +28,9 @@ struct Cli {
     #[arg(short, default_value_t = false)]
     list: bool,
 
-    /// Use this flag to pass substitutions 
-    /// in the form "x=<value>,y=<value>..."
-    /// If the value contains a comma or dollar 
-    /// sign, escape it with a \\
+    /// Use this flag to pass substitutions in the form 
+    /// "x=<value>,y=<value>..." If the value contains a comma,
+    /// escape it with a \\
     #[arg(short, verbatim_doc_comment)]
     subs: Option<String>
 }
