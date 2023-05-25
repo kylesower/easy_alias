@@ -12,7 +12,9 @@ struct Cli {
     alias: Option<String>,
 
     /// Bash script assigned to alias, enclosed 
-    /// in quotes if it contains spaces.
+    /// in quotes if it contains spaces. To add
+    /// substitutions, use '**x' syntax in the 
+    /// command, where x can be any single letter.
     #[arg(verbatim_doc_comment)]
     cmd: Option<String>,
 
@@ -25,7 +27,7 @@ struct Cli {
     list: bool,
 
     /// Use this flag to pass substitutions 
-    /// in the form "x<value>,y<value>..."
+    /// in the form "x=<value>,y=<value>..."
     /// If the value contains a comma or dollar 
     /// sign, escape it with a \\
     #[arg(short, verbatim_doc_comment)]
